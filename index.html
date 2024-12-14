@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax and Payment Tracking System</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4; /* Light gray background for subtle elegance */
+        }
+        
+        .form-container {
+            max-width: 700px;
+            margin: auto;
+            padding: 20px;
+            background-color: #ffffff; /* White background for contrast */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+        }
+
+        .form-container h1 {
+            text-align: center;
+            color: #2c3e50; /* Deep gray for headings */
+        }
+
+        .success-message {
+            position: relative;
+            text-align: center;
+            background-color: #eafaf1; /* Soft green background */
+            color: #256d26; /* Deep green for text */
+            border: 1px solid #c7e5cd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+
+        .success-message button {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: #256d26; /* Matching green for the button */
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50; /* Deep gray for labels */
+        }
+
+        .form-group input, .form-group select, .form-group button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fafafa; /* Light background for inputs */
+        }
+
+        .form-group button {
+            background-color: #e67e22; /* Vibrant orange for buttons */
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        .form-group button:hover {
+            background-color: #cf6e1b; /* Slightly darker orange for hover effect */
+        }
+
+        .table-container {
+            margin: 20px auto;
+            max-width: auto;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #ffffff; /* White background for table container */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f7d9c4; /* Soft peach for header background */
+            color: #2c3e50; /* Deep gray for header text */
+        }
+
+        td {
+            background-color: #ffffff;
+        }
+
+        tr:nth-child(even) td {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover td {
+            background-color: #fcefe3; /* Slightly darker peach for hover effect */
+        }
+
+        .actions-btn {
+            display: flex;
+            gap: 10px;
+        }
+
+        .actions-btn button, .actions-btn a {
+            padding: 5px 10px;
+            font-size: 14px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .actions-btn .edit-btn {
+            background-color: #27ae60; /* Green for edit buttons */
+            color: white;
+        }
+
+        .actions-btn .delete-btn {
+            background-color: #c0392b; /* Red for delete buttons */
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+        }
+
+        .actions-btn .edit-btn:hover {
+            background-color: #1e8449; /* Darker green for hover */
+        }
+
+        .actions-btn .delete-btn:hover {
+            background-color: #a93226; /* Darker red for hover */
+        }
+
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>Tax and Payment Tracking System</h1>
+
+        <!-- Success Message -->
+        {% if success_message %}
+            <div class="success-message" id="successMessage">
+                {{ success_message }}
+                <button type="button" onclick="hideSuccessMessage()">×</button>
+            </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="company">Company:</label>
+                <input type="text" id="company" name="company" required>
+            </div>
+            <div class="form-group">
+                <label for="amount">Amount:</label>
+                <input type="number" id="amount" name="amount" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="payment_date">Payment Date:</label>
+                <input type="date" id="payment_date" name="payment_date">
+            </div>
+            <div class="form-group">
+                <label for="status">Status:</label>
+                <select id="status" name="status" required>
+                    <option value="Paid">Paid</option>
+                    <option value="Unpaid">Unpaid</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="due_date">Due Date:</label>
+                <input type="date" id="due_date" name="due_date" required>
+            </div>
+            <div class="form-group">
+                <label for="tax_rate">Tax Rate:</label>
+                <input type="text" id="tax_rate" name="tax_rate" placeholder="Enter tax rate (e.g., 0.06)" required>
+            </div>
+            <div class="form-group">
+                <button type="submit">Save</button>
+            </div>
+        </form>
+    </div>
+
+        <form method="GET" action="">
+            {% csrf_token %}
+            <!-- Dropdown to select due date for filtering -->
+            <div class="form-group">
+                <label for="due_date_select">Select Due Date:</label>
+                <select id="due_date_select" name="due_date" class="form-control">
+                    <option value="">Select Due Date</option>
+                    {% for date in due_dates %}
+                        <option value="{{ date.due_date }}" {% if date.due_date == request.GET.due_date %}selected{% endif %}>
+                            {{ date.due_date }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+
+        <!-- Table to display data -->
+        <div class="table-container">
+            <table id="tax-payment-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Company</th>
+                        <th>Amount</th>
+                        <th>Payment Date</th>
+                        <th>Status</th>
+                        <th>Due Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="5"><b>Total Amount:</b></td>
+                        <td id="total_amount">$0</td>
+                    </tr>
+                    <tr>
+                        <td colspan="5"><b>Tax Rate:</b></td>
+                        <td id="total_tax_rate">0%</td>
+                    </tr>
+                    <tr>
+                        <td colspan="5"><b>Tax Due:</b></td>
+                        <td id="total_due">$0</td>
+                    </tr>
+                </tfoot>
+
+            </table>
+        </div>
+    </div>
+
+    <div class="table-container">
+    <h2>All Payments</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Company</th>
+                    <th>Amount</th>
+                    <th>Payment Date</th>
+                    <th>Status</th>
+                    <th>Due Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td>{{ record.id }}</td>
+                    <td>{{ record.company }}</td>
+                    <td>{{ record.amount }}</td>
+                    <td>{{ record.payment_date }}</td>
+                    <td>{{ record.status }}</td>
+                    <td>{{ record.due_date }}</td>
+                    <td class="actions-btn">
+                        <!-- Edit Button -->
+                        <button type="button" class="edit-btn" id = "edit-btn"
+                                data-id="{{ record.id }}"
+                                data-company="{{ record.company }}"
+                                data-amount="{{ record.amount }}"
+                                data-payment_date="{{ record.payment_date }}"
+                                data-status="{{ record.status }}"
+                                data-due_date="{{ record.due_date }}"
+                                data-tax_rate="{{ record.tax_rate }}">
+                            Edit
+                        </button>
+                        <!-- Delete Button -->
+                        <a href="{% url 'delete_tax_payment' record.id %}" class="delete-btn" onclick="return confirmDelete();">
+                            Delete
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Edit Tax Payment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{% url 'update_tax_payment' %}">
+                        {% csrf_token %}
+                        <input type="hidden" id="edit-id" name="id">
+                        <div class="form-group">
+                            <label for="edit-company">Company:</label>
+                            <input type="text" id="edit-company" name="company" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-amount">Amount:</label>
+                            <input type="number" id="edit-amount" name="amount" step="0.01" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-payment_date">Payment Date:</label>
+                            <input type="date" id="edit-payment_date" name="payment_date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-status">Status:</label>
+                            <select id="edit-status" name="status" class="form-control" required>
+                                <option value="Paid">Paid</option>
+                                <option value="Unpaid">Unpaid</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-due_date">Due Date:</label>
+                            <input type="date" id="edit-due_date" name="due_date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-tax_rate">Tax Rate:</label>
+                            <input type="text" id="edit-tax_rate" name="tax_rate" class="form-control" placeholder="Enter tax rate (e.g., 0.06)" required>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
+
+    <script>
+        function confirmDelete() {
+        return confirm("Are you sure you want to delete this record?");
+    }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const editButtons = document.querySelectorAll('.edit-btn');
+            const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+
+            editButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const id = this.getAttribute('data-id');
+                    const company = this.getAttribute('data-company');
+                    const amount = this.getAttribute('data-amount');
+                    const payment_date = this.getAttribute('data-payment_date');
+                    const status = this.getAttribute('data-status');
+                    const due_date = this.getAttribute('data-due_date');
+                    const tax_rate = this.getAttribute('data-tax_rate');
+
+                    document.getElementById('edit-id').value = id;
+                    document.getElementById('edit-company').value = company;
+                    document.getElementById('edit-amount').value = amount;
+                    document.getElementById('edit-payment_date').value = payment_date;
+                    document.getElementById('edit-status').value = status;
+                    document.getElementById('edit-due_date').value = due_date;
+                    document.getElementById('edit-tax_rate').value = tax_rate;
+
+                    editModal.show();
+                });
+            });
+        });
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+        const dueDateSelect = document.getElementById('due_date_select');
+
+        dueDateSelect.addEventListener('change', function () {
+            const dueDate = this.value;
+
+            // Perform AJAX request to filter data based on selected due date
+            fetch('/get_records_by_due_date/?due_date=' + dueDate, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.querySelector('#tax-payment-table tbody');
+                tableBody.innerHTML = ''; // Clear existing rows
+
+                let totalAmount = 0; // Initialize total amount
+                let taxRate = 0; // Initialize tax rate
+
+                // Loop through the records and populate the table
+                data.records.forEach(record => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${record.id}</td>
+                        <td>${record.company}</td>
+                        <td>${record.amount}</td>
+                        <td>${record.payment_date}</td>
+                        <td>${record.status}</td>
+                        <td>${record.due_date}</td>
+                    `;
+                    tableBody.appendChild(row);
+
+                    // Accumulate total amount and tax rate
+                    totalAmount += parseFloat(record.amount);
+                    taxRate = parseFloat(record.tax_rate); // Assuming taxRate is consistent for all records
+                });
+
+                const totalDue = totalAmount * taxRate;
+
+                // Update the total amount, tax rate, and tax due in the footer
+               document.getElementById('total_amount').textContent = `$${totalAmount.toFixed(2)}`;
+                    document.getElementById('total_tax_rate').textContent = `${(taxRate * 100).toFixed(2)}%`;
+                    document.getElementById('total_due').textContent = `$${totalDue.toFixed(2)}`;
+            });
+        });
+    });
+    </script>
+</body>
+</html>
